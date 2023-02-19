@@ -1,0 +1,40 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://Character.gd" type="Script" id=1]
+[ext_resource path="res://Character/Character.png" type="Texture" id=3]
+[ext_resource path="res://Citizen.shader" type="Shader" id=4]
+
+[sub_resource type="ShaderMaterial" id=3]
+shader = ExtResource( 4 )
+shader_param/mask_position = null
+shader_param/mask_size = null
+shader_param/sprite_size = null
+shader_param/global_transform = null
+
+[sub_resource type="Gradient" id=4]
+interpolation_mode = 2
+offsets = PoolRealArray( 0.00558659, 1 )
+colors = PoolColorArray( 1, 0.847059, 0.686275, 1, 0.156863, 0.0941176, 0.0235294, 1 )
+
+[sub_resource type="GradientTexture2D" id=5]
+gradient = SubResource( 4 )
+height = 1
+
+[sub_resource type="Gradient" id=6]
+interpolation_mode = 2
+offsets = PoolRealArray( 0, 0.329609, 0.921788, 1 )
+colors = PoolColorArray( 0, 0.15625, 0.0280762, 1, 0.1875, 0.0615234, 0, 1, 0.132813, 0.0529175, 0, 1, 0, 1, 0.976563, 1 )
+
+[sub_resource type="GradientTexture2D" id=7]
+gradient = SubResource( 6 )
+height = 1
+
+[node name="Character" type="Sprite"]
+material = SubResource( 3 )
+texture = ExtResource( 3 )
+script = ExtResource( 1 )
+skinTone = SubResource( 5 )
+eyeColor = SubResource( 7 )
+
+[node name="Hat" type="Sprite" parent="."]
+position = Vector2( 0, -13 )

@@ -1,0 +1,278 @@
+[gd_scene load_steps=23 format=2]
+
+[ext_resource path="res://World/layout.png" type="Texture" id=1]
+[ext_resource path="res://World.gd" type="Script" id=2]
+[ext_resource path="res://Event.tscn" type="PackedScene" id=3]
+[ext_resource path="res://World/layout_Boarding.png" type="Texture" id=4]
+[ext_resource path="res://World/layout_Invading_slimes.png" type="Texture" id=5]
+[ext_resource path="res://World/layout_Wrecked_Ship.png" type="Texture" id=6]
+[ext_resource path="res://Abel-Regular.ttf" type="DynamicFontData" id=7]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform float brightness : hint_range(0.001, 2.0) = 1.0;
+uniform float speed_scale = .03;
+uniform float columns = 64.0;
+uniform float rows = 36.0;
+uniform float border_width = 0.05;
+uniform float sub_border_count = 5.0;
+uniform float sub_border_width = 0.1;
+uniform vec4 background_color : hint_color;
+uniform vec4 border_color : hint_color;
+uniform vec4 sub_border_color : hint_color;
+
+uniform float vignette_intensity = 0.4;
+uniform float vignette_opacity : hint_range(0.0, 1.0) = 0.5;
+uniform vec4 vignette_rgb : hint_color = vec4(0.0, 0.0, 0.0, 1.0);
+
+vec2 Rotate(vec2 input, float angle) {
+	float c = cos(degrees(angle));
+	float s = sin(degrees(angle));
+	return vec2(input.x * c - input.y * s, input.x * s + input.y * c);
+}
+
+float vignette(vec2 uv){
+	uv *= 1.0 - uv.xy;
+	float vignette = uv.x * uv.y * 15.0;
+	return pow(vignette, vignette_intensity * vignette_opacity);
+}
+
+void fragment() {
+	vec2 uv = Rotate(SCREEN_UV, 45.0) + vec2(TIME * speed_scale, 0.0);
+	
+	vec2 subGrid = fract(vec2(uv.x * columns * sub_border_count, uv.y * rows * sub_border_count));
+	vec2 subBL = smoothstep(vec2(0.0), vec2(sub_border_width), subGrid);
+	vec2 subTR = smoothstep(vec2(0.0), vec2(sub_border_width), 1.0 - subGrid);
+	
+	vec4 gridColor = mix(sub_border_color, background_color, subBL.x * subBL.y * subTR.x * subTR.y);
+	
+	vec2 grid = fract(vec2(uv.x * columns, uv.y * rows));
+	vec2 bottom_left = smoothstep(vec2(0.0), vec2(border_width), grid);
+	vec2 top_right = smoothstep(vec2(0.0), vec2(border_width), 1.0 - grid);
+	
+	gridColor = mix(border_color, gridColor, bottom_left.x * bottom_left.y * top_right.x * top_right.y);
+	
+	gridColor.rgba *= (vignette_rgb.rgba);
+	gridColor.rgba *= (vignette(SCREEN_UV));
+	gridColor.a = 1.0;
+
+	COLOR = gridColor;
+}
+"
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
+shader_param/brightness = 1.0
+shader_param/speed_scale = 0.02
+shader_param/columns = 32.0
+shader_param/rows = 32.0
+shader_param/border_width = 0.02
+shader_param/sub_border_count = 5.0
+shader_param/sub_border_width = 0.1
+shader_param/background_color = Color( 0, 0, 0, 1 )
+shader_param/border_color = Color( 0.639216, 0, 0, 1 )
+shader_param/sub_border_color = Color( 0.47, 0.1786, 0.1786, 1 )
+shader_param/vignette_intensity = 2.0
+shader_param/vignette_opacity = 0.8
+shader_param/vignette_rgb = Color( 1, 1, 1, 1 )
+
+[sub_resource type="NoiseTexture" id=3]
+width = 960
+height = 540
+seamless = true
+
+[sub_resource type="RectangleShape2D" id=6]
+extents = Vector2( 210, 123.5 )
+
+[sub_resource type="RectangleShape2D" id=5]
+extents = Vector2( 37.073, 80.393 )
+
+[sub_resource type="RectangleShape2D" id=14]
+extents = Vector2( 101, 41.5 )
+
+[sub_resource type="RectangleShape2D" id=8]
+extents = Vector2( 53, 51.5 )
+
+[sub_resource type="RectangleShape2D" id=9]
+extents = Vector2( 210.5, 178 )
+
+[sub_resource type="RectangleShape2D" id=10]
+extents = Vector2( 101, 95.5 )
+
+[sub_resource type="RectangleShape2D" id=11]
+extents = Vector2( 49.5, 78.5 )
+
+[sub_resource type="RectangleShape2D" id=12]
+extents = Vector2( 47.5, 74 )
+
+[sub_resource type="RectangleShape2D" id=13]
+extents = Vector2( 50.5, 153.5 )
+
+[sub_resource type="RectangleShape2D" id=7]
+extents = Vector2( 101, 42 )
+
+[sub_resource type="NavigationPolygon" id=4]
+vertices = PoolVector2Array( 696, 483, 948, 530, 13, 526, 135, 485, 802, 217, 799, 123, 799, 57, 952, 10, 449, 273, 489, 248, 694, 248, 733, 276, 693, 291, 489, 290, 801, 377, 732, 378, 733, 326, 10, 10, 191, 56, 733, 217, 692, 162, 449, 163, 488, 227, 489, 365, 489, 476, 450, 382, 449, 326, 300, 476, 341, 382, 340, 327, 301, 322, 304, 282, 135, 477, 226, 273, 198, 274, 198, 121, 293, 122, 293, 274, 269, 274, 423, 123, 488, 162, 226, 280, 270, 282, 199, 115, 198, 61, 794, 63, 371, 115, 741, 276, 740, 223, 794, 223, 794, 370, 740, 370, 740, 326, 686, 171, 687, 242, 496, 242, 496, 227, 498, 184, 688, 297, 688, 478, 496, 476, 496, 365, 497, 316, 442, 326, 443, 375, 349, 376, 348, 327, 192, 164, 138, 164, 138, 171, 192, 324, 191, 477, 191, 281, 294, 478, 198, 478, 199, 329, 223, 329, 794, 116, 422, 115, 191, 171, 498, 171, 489, 184, 423, 163, 347, 240, 371, 169, 423, 169, 347, 268, 371, 163, 347, 192, 347, 169, 443, 169, 443, 268, 341, 192, 341, 240, 497, 297, 489, 316, 283, 329, 294, 329, 224, 324, 283, 322, 370, 123, 341, 163, 304, 123, 341, 273 )
+polygons = [ PoolIntArray( 0, 1, 2, 3 ), PoolIntArray( 4, 5, 6, 7, 1 ), PoolIntArray( 8, 9, 10, 11, 12, 13 ), PoolIntArray( 14, 4, 1 ), PoolIntArray( 14, 1, 0, 15 ), PoolIntArray( 16, 15, 0, 12, 11 ), PoolIntArray( 17, 7, 6, 18 ), PoolIntArray( 19, 11, 10, 20 ), PoolIntArray( 9, 8, 21, 22 ), PoolIntArray( 23, 24, 25, 26 ), PoolIntArray( 25, 24, 27, 28 ), PoolIntArray( 29, 28, 27, 30, 31 ), PoolIntArray( 3, 2, 17, 32 ), PoolIntArray( 33, 34, 35, 36 ), PoolIntArray( 33, 36, 37, 38 ), PoolIntArray( 5, 4, 19, 20 ), PoolIntArray( 39, 5, 20, 40 ), PoolIntArray( 41, 33, 38, 42 ), PoolIntArray( 43, 44, 45, 46 ), PoolIntArray( 47, 48, 49, 50 ), PoolIntArray( 47, 50, 51, 52 ), PoolIntArray( 11, 47, 52, 16 ), PoolIntArray( 53, 54, 55, 56, 57 ), PoolIntArray( 58, 59, 60, 61, 62 ), PoolIntArray( 63, 64, 65, 66 ), PoolIntArray( 18, 67, 68, 17 ), PoolIntArray( 32, 17, 68, 69 ), PoolIntArray( 70, 71, 32, 69, 72 ), PoolIntArray( 73, 74, 75, 76 ), PoolIntArray( 45, 77, 78 ), PoolIntArray( 46, 45, 78 ), PoolIntArray( 69, 79, 72 ), PoolIntArray( 57, 80, 53 ), PoolIntArray( 81, 57, 56, 22 ), PoolIntArray( 81, 22, 21, 40 ), PoolIntArray( 39, 40, 21, 82 ), PoolIntArray( 83, 84, 82, 85, 86 ), PoolIntArray( 82, 84, 87, 39 ), PoolIntArray( 88, 89, 84 ), PoolIntArray( 85, 90, 91, 86 ), PoolIntArray( 88, 84, 83 ), PoolIntArray( 92, 88, 83, 93 ), PoolIntArray( 62, 94, 58 ), PoolIntArray( 95, 62, 61, 23, 26 ), PoolIntArray( 96, 97, 73 ), PoolIntArray( 96, 73, 76, 98 ), PoolIntArray( 99, 96, 98, 41, 42 ), PoolIntArray( 70, 72, 41, 98 ), PoolIntArray( 99, 42, 31, 30 ), PoolIntArray( 100, 46, 78, 39, 87 ), PoolIntArray( 100, 87, 101, 102 ), PoolIntArray( 31, 102, 101, 92 ), PoolIntArray( 31, 92, 93 ), PoolIntArray( 31, 93, 103, 29 ), PoolIntArray( 63, 66, 29, 103, 8, 13 ), PoolIntArray( 26, 63, 13, 95 ) ]
+outlines = [ PoolVector2Array( 952, 10, 948, 530, 13, 526, 10, 10 ), PoolVector2Array( 489, 184, 498, 184, 498, 171, 686, 171, 687, 242, 496, 242, 496, 227, 488, 227, 489, 248, 694, 248, 692, 162, 488, 162 ), PoolVector2Array( 733, 276, 741, 276, 740, 223, 794, 223, 794, 370, 740, 370, 740, 326, 733, 326, 732, 378, 801, 377, 802, 217, 733, 217 ), PoolVector2Array( 370, 123, 371, 115, 199, 115, 198, 61, 794, 63, 794, 116, 422, 115, 423, 123, 799, 123, 799, 57, 191, 56, 192, 164, 138, 164, 138, 171, 191, 171, 191, 281, 226, 280, 226, 273, 198, 274, 198, 121, 293, 122, 293, 274, 269, 274, 270, 282, 304, 282, 304, 123 ), PoolVector2Array( 341, 192, 347, 192, 347, 169, 371, 169, 371, 163, 341, 163 ), PoolVector2Array( 423, 163, 423, 169, 443, 169, 443, 268, 347, 268, 347, 240, 341, 240, 341, 273, 449, 273, 449, 163 ), PoolVector2Array( 340, 327, 348, 327, 349, 376, 443, 375, 442, 326, 449, 326, 450, 382, 341, 382 ), PoolVector2Array( 489, 316, 497, 316, 497, 297, 688, 297, 688, 478, 496, 476, 496, 365, 489, 365, 489, 476, 300, 476, 301, 322, 283, 322, 283, 329, 294, 329, 294, 478, 198, 478, 199, 329, 223, 329, 224, 324, 192, 324, 191, 477, 135, 477, 135, 485, 696, 483, 693, 291, 489, 290 ) ]
+
+[sub_resource type="DynamicFont" id=15]
+font_data = ExtResource( 7 )
+
+[node name="World" type="Node2D"]
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Grid_Background" type="Sprite" parent="."]
+material = SubResource( 2 )
+texture = SubResource( 3 )
+centered = false
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Background" type="Sprite" parent="."]
+texture = ExtResource( 1 )
+centered = false
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Events" type="Node2D" parent="."]
+
+[node name="Famine" parent="Events" instance=ExtResource( 3 )]
+visible = false
+position = Vector2( 588, 389 )
+
+[node name="Disease" parent="Events" instance=ExtResource( 3 )]
+visible = false
+position = Vector2( 729, 92 )
+eventType = 1
+
+[node name="Invasion" parent="Events" instance=ExtResource( 3 )]
+visible = false
+position = Vector2( 825, 446 )
+texture = ExtResource( 5 )
+eventType = 2
+
+[node name="Boarding" parent="Events" instance=ExtResource( 3 )]
+visible = false
+position = Vector2( 753, 169 )
+texture = ExtResource( 4 )
+eventType = 3
+
+[node name="Scavenge" parent="Events" instance=ExtResource( 3 )]
+visible = false
+position = Vector2( 81, 80 )
+texture = ExtResource( 6 )
+eventType = 4
+
+[node name="Insurrection" parent="Events" instance=ExtResource( 3 )]
+visible = false
+position = Vector2( 766, 350 )
+eventType = 5
+
+[node name="Population" type="Node2D" parent="."]
+
+[node name="Artist_Target" type="Area2D" parent="Population"]
+position = Vector2( 469, 260 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Population/Artist_Target"]
+visible = false
+position = Vector2( 47, -9.5 )
+shape = SubResource( 6 )
+
+[node name="Captain_Target" type="Area2D" parent="Population"]
+position = Vector2( 763, 297 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Population/Captain_Target"]
+visible = false
+shape = SubResource( 5 )
+
+[node name="Child_Target" type="Area2D" parent="Population"]
+position = Vector2( 258, 93 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Population/Child_Target"]
+visible = false
+position = Vector2( 334, 113.5 )
+shape = SubResource( 14 )
+
+[node name="Compost_Target" type="Area2D" parent="Population"]
+position = Vector2( 390, 212 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Population/Compost_Target"]
+position = Vector2( 5, 3 )
+shape = SubResource( 8 )
+
+[node name="Engineer_Target" type="Area2D" parent="Population"]
+position = Vector2( 397, 324 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Population/Engineer_Target"]
+visible = false
+position = Vector2( 118.5, -20 )
+shape = SubResource( 9 )
+
+[node name="Farmer_Target" type="Area2D" parent="Population"]
+position = Vector2( 588, 390 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Population/Farmer_Target"]
+visible = false
+position = Vector2( 4, -4.5 )
+shape = SubResource( 10 )
+
+[node name="Fighter_Target" type="Area2D" parent="Population"]
+position = Vector2( 250, 203 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Population/Fighter_Target"]
+position = Vector2( -2.5, -4.5 )
+shape = SubResource( 11 )
+
+[node name="Medic_Target" type="Area2D" parent="Population"]
+position = Vector2( 253, 395 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Population/Medic_Target"]
+visible = false
+position = Vector2( -7.5, 8 )
+shape = SubResource( 12 )
+
+[node name="Pilot_Target" type="Area2D" parent="Population"]
+position = Vector2( 168, 421 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Population/Pilot_Target"]
+visible = false
+position = Vector2( -27.5, -97.5 )
+shape = SubResource( 13 )
+
+[node name="Teacher_Target" type="Area2D" parent="Population"]
+position = Vector2( 649, 207 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Population/Teacher_Target"]
+position = Vector2( -58, -3 )
+shape = SubResource( 7 )
+
+[node name="NavigationPolygonInstance" type="NavigationPolygonInstance" parent="."]
+navpoly = SubResource( 4 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="CanvasLayer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/Control"]
+anchor_left = 0.5
+anchor_top = 0.025
+anchor_right = 0.5
+anchor_bottom = 0.025
+margin_left = -80.0
+margin_right = 80.0
+margin_bottom = 40.0
+custom_fonts/normal_font = SubResource( 15 )
+text = "Events Handled: "
